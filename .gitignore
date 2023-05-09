@@ -1,0 +1,52 @@
+# Ignore compiled files
+*.o
+*.obj
+*.exe
+*.out
+*.dll
+*.so
+*.dylib
+
+# Ignore clangd file
+*.clangd
+
+# Ignore build directories
+build/
+bin/
+
+# Ignore project files (depends on IDE)
+*.user
+*.suo
+*.sdf
+*.opensdf
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
+# Ignore logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Ignore autosave files
+*~
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Ignore macOS system files
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Ignore Visual Studio Code settings
+.vscode/
+
+# Ignore other system and temporary files
+Thumbs.db
+Desktop.ini
+*.lock
+*.pid
+*.log
