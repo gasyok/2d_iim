@@ -1,19 +1,6 @@
 #include <init/init.h>
 #include <cmath>
 
-void InitValues::SetTau(double _tau) {
-    tau = _tau;
-}
-void InitValues::SetH(double _h) {
-    h = _h;
-}
-
-void InitValues::SetRho(double _rho) {
-    rho = _rho;
-}
-void InitValues::SetSpeed(double _c) {
-    c = _c;
-}
 void InitValues::SetPressure(double x0, double y0, double A, double omega, double a, double b) {
     double dx = a;
     double dy = b;
@@ -24,15 +11,15 @@ void InitValues::SetPressure(double x0, double y0, double A, double omega, doubl
     for (int i = 0; i < size_x; ++i) {
         pressure.push_back(vector<double>());
         for (int j = 0; j < size_y; ++j) {
-            // double theta = d_norm_x * (coord_x[i] - x0) + d_norm_y * (coord_y[j] - y0);
-            // if (theta <= 1 / omega && theta >= 0) {
-            //     pressure[i].push_back(0.5 * 3 * (1 - cos(2 * M_PI * omega * theta)));
-            // }
-            // else {
-            //     pressure[i].push_back(0);
-            // }
-            pressure[i].push_back(A * exp(-(pow(((coord_x[i] - x0) * d_norm_x + (coord_y[j] - y0) * d_norm_y), 2) / (2 * omega * omega))));
-            // pressure[i].push_back(A * exp(-(((coord_x[i] - x0) * (coord_x[i] - x0) + (coord_y[j] - y0) * (coord_y[j] - y0)) / (2 * sigma * sigma))));
+            double theta = d_norm_x * (coord_x[i] - x0) + d_norm_y * (coord_y[j] - y0);
+            if (theta >= 0 && theta <= (1 / omega)) {
+                pressure[i].push_back(0.5 * A * (1 - cos(2 * M_PI * omega * theta)));
+            }
+            else {
+                pressure[i].push_back(0);
+            }
+            // pressure[i].push_back(A * exp(-(pow(((coord_x[i] - x0) * d_norm_x + (coord_y[j] - y0) * d_norm_y), 2) / (2 * omega * omega))));
+            // pressure[i].push_back(A * exp(-(((coord_x[i] - x0) * (coord_x[i] - x0) + (coord_y[j] - y0) * (coord_y[j] - y0)) / (2 * omega * omega))));
             // pressure[i].push_back(exp(-626 * ((coord_x[i] - x0) * (coord_x[i] - x0) + (coord_y[j] - y0) * (coord_y[j] - y0))));
         }
     }
@@ -47,8 +34,8 @@ void InitValues::SetVelocity(double x0, double y0, double a, double b) {
         velocity_x.push_back(vector<double>());
         velocity_y.push_back(vector<double>());
         for (int j = 0; j < size_y; ++j) {
-            velocity_x[i].push_back(pressure[i][j] * d_norm_x);
-            velocity_y[i].push_back(pressure[i][j] * d_norm_y);
+            velocity_x[i].push_back(pressure[i][j] * d_norm_x / (rho_minus * c_minus));
+            velocity_y[i].push_back(pressure[i][j] * d_norm_y / (rho_minus * c_minus));
             // velocity_x[i].push_back(0);
             // velocity_y[i].push_back(0);
         }
@@ -87,21 +74,10 @@ double InitValues::GetTau() {
 double InitValues::GetH() {
     return h;
 }
-void InitValues::SetSizeX(double a, double b) {
-    size_x = (b - a) / h;
-}
-void InitValues::SetSizeY(double a, double b) {
-    size_y = (b - a) / h;
-}
-InitValues::InitValues() {}
+InitValues::InitValues() : InitValues(0.0002, 0.01, 2, 1, -0.5, 0.5, -0.5, 0.5, 0, -0.4, 1, 5, 1, 10) {}
 InitValues::InitValues(double tau, double h, double c, double rho, double min_x,
-                       double max_x, double min_y, double max_y, double x0, double y0, double A, double sigma, double a, double b) {
-    SetTau(tau);
-    SetH(h);
-    SetSpeed(c);
-    SetRho(rho);
-    SetSizeX(min_x, max_x);
-    SetSizeY(min_y, max_y);
+                       double max_x, double min_y, double max_y, double x0, double y0, double A, double sigma, double a, double b) 
+    : tau(tau), h(h), c(c), rho(rho), size_x(static_cast<int>((max_x - min_x) / h)), size_y(static_cast<int>((max_y - min_y) / h)) {
 
     // Define x coord
     coord_x.clear();
@@ -113,13 +89,14 @@ InitValues::InitValues(double tau, double h, double c, double rho, double min_x,
     for (int i = 0; i < size_y; ++i) {
         coord_y.push_back(min_y + i * h);
     }
-    SetPressure(x0, y0, A, sigma, a, b);
-    SetVelocity(x0, y0, a, b);
 
-    rho_minus = 1;
-    rho_plus = 2;
-    c_minus = 3;
-    c_plus = 1;
+    // Initialize pressure and velocity
+
+    // Initialize other properties
+    rho_minus = 1.5;
+    rho_plus = 1.5;
+    c_minus = 2;
+    c_plus = 2;
     k_minus = c_minus * c_minus * rho_minus;
     k_plus = c_plus * c_plus * rho_plus;
 
@@ -135,4 +112,6 @@ InitValues::InitValues(double tau, double h, double c, double rho, double min_x,
     B_plus << 0, 0, 0,
                0, 0, 1 / rho_plus,
                0, k_plus, 0;
+    SetPressure(x0, y0, A, sigma, a, b);
+    SetVelocity(x0, y0, a, b);
 }

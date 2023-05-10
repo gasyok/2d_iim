@@ -19,14 +19,8 @@ public:
     InitValues(double tau, double h, double c, double rho, double min_x,
                double max_x, double min_y, double max_y, double x0, double y0, double A, double sigma, double a, double b);
     InitValues();
-    void SetTau(double _tau);
-    void SetH(double _h);
-    void SetRho(double _rho);
-    void SetSpeed(double _c);
     void SetPressure(double x0, double y0, double A, double sigma, double a, double b);
     void SetVelocity(double x0, double y0, double a, double b);
-    void SetSizeX(double a, double b);
-    void SetSizeY(double a, double b);
 
     double GetTau();
     double GetH();

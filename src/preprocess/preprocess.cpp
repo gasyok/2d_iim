@@ -21,13 +21,14 @@ Vector2d PreProcess::bisection(double x1, double x2, double y1, double y2, doubl
 
     int iter = 0;
     double prev_x0, prev_y0;
+    const double epsilon = tol * 10;
 
     while ((std::abs(func(x0, y0)) > tol || std::abs(prev_x0 - x0) > tol || std::abs(prev_y0 - y0) > tol) && iter < max_iter) {
         prev_x0 = x0;
         prev_y0 = y0;
 
         // Find y0
-        if (func(x0, y1) * func(x0, y0) < 0) {
+        if (func(x0, y1) * func(x0, y0) <= 0.0) {
             y2 = y0;
         } else {
             y1 = y0;
@@ -35,7 +36,7 @@ Vector2d PreProcess::bisection(double x1, double x2, double y1, double y2, doubl
         y0 = (y1 + y2) / 2.0;
 
         // Find x0
-        if (func(x1, y0) * func(x0, y0) < 0) {
+        if (func(x1, y0) * func(x0, y0) <= 0.0) {
             x2 = x0;
         } else {
             x1 = x0;
@@ -62,10 +63,8 @@ Vector2d PreProcess::GetOrigin(pair<int, int> point) {
     for (const auto& offset : offsets) {
         int new_i = offset.first;
         int new_j = offset.second;
-        // int new_i = (x_size + i + offset.first) % x_size;
-        // int new_j = (y_size + j + offset.second) % y_size;
 
-        if (func(get_x(i), get_y(j)) * func(get_x(new_i), get_y(new_j)) < 0) {
+        if(is_opposite(i, j, new_i, new_j)) {
             res = bisection(get_x(i), get_x(new_i), get_y(j), get_y(new_j));
             break;
         }
@@ -122,10 +121,11 @@ Matrix3d PreProcess::RotateMatrix(pair<int, int> point, Matrix3d matrix) {
 }
 vector<Matrix3d> PreProcess::GetDefaultQ (pair<int, int> point) {
     double rho_temp, k_temp, c_temp;
+    const double eps = 1e-12;
     rho_temp = rho_minus / rho_plus;
     k_temp = k_minus / k_plus;
     c_temp = c_minus / c_plus;
-    if (func(get_x(point.first), get_y(point.second)) > 0) {
+    if (func(get_x(point.first), get_y(point.second)) > 0.0) {
         rho_temp = 1 / rho_temp;
         k_temp = 1 / k_temp;
         c_temp = 1 / c_temp;
@@ -153,9 +153,10 @@ vector<Matrix3d> PreProcess::GetDefaultQ (pair<int, int> point) {
 Matrix3d PreProcess::OppositeQ(int i, int l, pair<int, int> point) {
     Vector2d new_coord = GetRotationalCoord(l, point);
     double xi = new_coord(0);
+    const double eps = 1e-12;
     double eta = new_coord(1);
     double c_temp = c_minus / c_plus;
-    if (func(get_x(point.first), get_y(point.second)) > 0) {
+    if (func(get_x(point.first), get_y(point.second)) > 0.0) {
         c_temp = 1 / c_temp;
     }
     Vector2d origin = GetOrigin(point);
@@ -188,7 +189,7 @@ Matrix3d PreProcess::BesideQ(int i, int l, pair<int, int> point) {
 }
 Matrix3d PreProcess::GetQmatrix(int i, int l, pair<int, int> point) {
     pair<int, int> new_point = GetPoint(l, point);
-    if (func(get_x(GetPoint(l, point).first), get_y(GetPoint(l, point).second)) * func(get_x(point.first), get_y(point.second)) < 0) {
+    if (is_opposite(point.first, point.second, new_point.first, new_point.second)) {
         return OppositeQ(i, l, point);
     }
     else {
@@ -202,8 +203,9 @@ Matrix3d PreProcess::GetFmatrix(int i, pair<int, int> point) {
     Vector2d new_coord = GetRotationalCoord(1, point);
     double xi = new_coord(0);
     double eta = new_coord(1);
+    const double eps = 1e-12;
 
-    if (func(get_x(point.first), get_y(point.second)) > 0) {
+    if (func(get_x(point.first), get_y(point.second)) > 0.0) {
         A = A_plus;
         B = B_plus;
         c = c_plus;
