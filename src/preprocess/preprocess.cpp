@@ -12,23 +12,22 @@ pair<int, int> PreProcess::GetPoint(int l, pair<int, int> point) {
     int j1 = (y_size + (j - 1)) % y_size;
     int j2 = (y_size + (j + 1)) % y_size;
 
-    const vector<pair<int, int>> offsets = {{i, j1}, {i, j}, {i, j2}, {i2, j}, {i1, j}, {i1, j2}};
+    const vector<pair<int, int>> offsets = {{i1, j}, {i, j}, {i2, j}, {i, j2}, {i, j1}, {i2, j1}};
     return offsets[l];
 }
-Vector2d PreProcess::bisection(double x1, double x2, double y1, double y2, double tol=1e-8, int max_iter = 1000) {
+Vector2d PreProcess::bisection(double x1, double x2, double y1, double y2, double tol=1e-17, int max_iter = 3000) {
     double x0 = (x1 + x2) / 2.0;
     double y0 = (y1 + y2) / 2.0;
 
     int iter = 0;
     double prev_x0, prev_y0;
-    const double epsilon = tol * 10;
 
     while ((std::abs(func(x0, y0)) > tol || std::abs(prev_x0 - x0) > tol || std::abs(prev_y0 - y0) > tol) && iter < max_iter) {
         prev_x0 = x0;
         prev_y0 = y0;
 
         // Find y0
-        if (func(x0, y1) * func(x0, y0) <= 0.0) {
+        if (func(x0, y1) * func(x0, y0) < 0.0) {
             y2 = y0;
         } else {
             y1 = y0;
@@ -36,7 +35,7 @@ Vector2d PreProcess::bisection(double x1, double x2, double y1, double y2, doubl
         y0 = (y1 + y2) / 2.0;
 
         // Find x0
-        if (func(x1, y0) * func(x0, y0) <= 0.0) {
+        if (func(x1, y0) * func(x0, y0) < 0.0) {
             x2 = x0;
         } else {
             x1 = x0;
@@ -57,7 +56,8 @@ Vector2d PreProcess::GetOrigin(pair<int, int> point) {
     int j2 = (y_size + (j + 1)) % y_size;
 
 
-    const vector<pair<int, int>> offsets = {{i, j1}, {i, j}, {i, j2}, {i2, j}, {i1, j}};
+    const vector<pair<int, int>> offsets = {{i1, j}, {i, j}, {i2, j}, {i, j2}, {i, j1}};
+    // const vector<pair<int, int>> offsets = {{i, j1}, {i, j}, {i, j2}, {i2, j}, {i1, j}};
     Vector2d res;
 
     for (const auto& offset : offsets) {
@@ -65,10 +65,19 @@ Vector2d PreProcess::GetOrigin(pair<int, int> point) {
         int new_j = offset.second;
 
         if(is_opposite(i, j, new_i, new_j)) {
+            // if (func(get_x(i), get_y(j)) < 0) {
+            //     Vector2d tmp(get_x(i), get_y(j) + h / 2);
+            //     res = tmp;
+            // }
+            // else {
+            //     Vector2d tmp(get_x(i), get_y(j) - h / 2);
+            //     res = tmp;
+            // }
             res = bisection(get_x(i), get_x(new_i), get_y(j), get_y(new_j));
             break;
         }
     }
+    std::cout << "(x, y) = " << "(" << get_x(i) << ", " << get_y(j) << "); and (x_new, y_new) = " << "(" << res(0) << ", " << res(1) << ");\n";
     return res;
 }
 Eigen::Vector2d PreProcess::normalize(const Eigen::Vector2d& vec) {
@@ -125,7 +134,7 @@ vector<Matrix3d> PreProcess::GetDefaultQ (pair<int, int> point) {
     rho_temp = rho_minus / rho_plus;
     k_temp = k_minus / k_plus;
     c_temp = c_minus / c_plus;
-    if (func(get_x(point.first), get_y(point.second)) > 0.0) {
+    if (func(get_x(point.first), get_y(point.second)) >= 0.0) {
         rho_temp = 1 / rho_temp;
         k_temp = 1 / k_temp;
         c_temp = 1 / c_temp;
@@ -156,11 +165,12 @@ Matrix3d PreProcess::OppositeQ(int i, int l, pair<int, int> point) {
     const double eps = 1e-12;
     double eta = new_coord(1);
     double c_temp = c_minus / c_plus;
-    if (func(get_x(point.first), get_y(point.second)) > 0.0) {
-        c_temp = 1 / c_temp;
-    }
+    // if (func(get_x(point.first), get_y(point.second)) >= 0.0) {
+    //     c_temp = 1 / c_temp;
+    // }
     Vector2d origin = GetOrigin(point);
     double curvature_value = curvature(origin(0), origin(1));
+    // double curvature_value = 0.0;
 
     vector<Matrix3d> matrices_default = GetDefaultQ(point);
     Matrix3d q1 = matrices_default[0];
@@ -178,11 +188,11 @@ Matrix3d PreProcess::BesideQ(int i, int l, pair<int, int> point) {
     double xi = new_coord(0);
     double eta = new_coord(1);
     Matrix3d q1 = Matrix3d::Identity();
-    Matrix3d q2 = xi * Matrix3d::Identity();
-    Matrix3d q3 = eta * Matrix3d::Identity();
-    Matrix3d q4 = xi * xi * Matrix3d::Identity();
-    Matrix3d q5 = 2 * xi * eta * Matrix3d::Identity();
-    Matrix3d q6 = eta * eta * Matrix3d::Identity();
+    Matrix3d q2 = (xi / h) * Matrix3d::Identity();
+    Matrix3d q3 = (eta / h) * Matrix3d::Identity();
+    Matrix3d q4 = (xi * xi / (h * h)) * Matrix3d::Identity();
+    Matrix3d q5 = 2 * xi * eta / (h * h) * Matrix3d::Identity();
+    Matrix3d q6 = eta * eta / (h * h) * Matrix3d::Identity();
 
     vector<Matrix3d> matrices = {q1, q2, q3, q4, q5, q6};
     return matrices[i];
@@ -205,17 +215,17 @@ Matrix3d PreProcess::GetFmatrix(int i, pair<int, int> point) {
     double eta = new_coord(1);
     const double eps = 1e-12;
 
-    if (func(get_x(point.first), get_y(point.second)) > 0.0) {
+    if (func(get_x(point.first), get_y(point.second)) >= 0.0) {
         A = A_plus;
         B = B_plus;
         c = c_plus;
     }
     Matrix3d f1 = Matrix3d::Zero();
-    Matrix3d f2 = -h * A;
-    Matrix3d f3 = -h * B;
-    Matrix3d f4 = h * k * c * c * Matrix3d::Identity() - 2 * h * xi * A;
-    Matrix3d f5 = -2 * h * (eta * A + xi * B);
-    Matrix3d f6 = h * k * c * c * Matrix3d::Identity() - 2 * h * eta * B;
+    Matrix3d f2 = -A;
+    Matrix3d f3 = -B;
+    Matrix3d f4 = (k / h) * c * c * Matrix3d::Identity() - 2 * xi / h * A;
+    Matrix3d f5 = -2 / h * (eta * A + xi * B);
+    Matrix3d f6 = (k / h) * c * c * Matrix3d::Identity() - 2 / h * eta * B;
 
     vector<Matrix3d> matrices = {f1, f2, f3, f4, f5, f6};
     return matrices[i];

@@ -34,7 +34,8 @@ Vector3d System::irrEquation(int i, int j) {
 
     int j1 = (y_size + (j - 1)) % y_size;
     int j2 = (y_size + (j + 1)) % y_size;
-    const vector<pair<int, int>> offsets = {{i, j1}, {i, j}, {i, j2}, {i2, j}, {i1, j}, {i1, j2}};
+    const vector<pair<int, int>> offsets = {{i1, j}, {i, j}, {i2, j}, {i, j2}, {i, j1}, {i2, j1}};
+    // const vector<pair<int, int>> offsets = {{i, j1}, {i, j}, {i, j2}, {i2, j}, {i1, j}, {i1, j2}};
 
     pair<int, int> point = std::make_pair(i, j);
     for (int l = 0; l < 6; ++l) {
@@ -45,9 +46,40 @@ Vector3d System::irrEquation(int i, int j) {
     }
     return u[i][j] + k / h * res; 
 }
-void System::solve() {
+void System::solve(double t) {
     for (int i = 0; i < x_size; ++i) {
-        for (int j = 0; j < y_size; ++j) {
+        for (int j = 0; j < y_size ; ++j) {
+            if (i == 0 || i == x_size - 1 || j == 0 || j == y_size - 1) {
+                double x0 = 0;
+                double y0 = -0.4;
+                double dx = 1;
+                double dy = 10;
+                double d_norm = sqrt(dx * dx + dy * dy);
+                double d_norm_x = dx / d_norm;
+                double d_norm_y = dy / d_norm;
+                double A = 1;
+                double omega = 5;
+                double _c, _rho, pressure;
+                if (func(get_x(i), get_y(j)) <= 0) {
+                    _c = c_minus;
+                    _rho = rho_minus;
+                }
+                else {
+                    _c = c_plus;
+                    _rho = rho_plus;
+                }
+                double theta = d_norm_x * (get_x(i) - x0) + d_norm_y * (get_y(j) - y0) - _c * t;
+                if (theta >= 0 && theta <= (1 / omega)) {
+                    pressure = (0.5 * A * (1 - cos(2 * M_PI * omega * theta)));
+                }
+                else {
+                    pressure = 0.0;
+                }
+                u[i][j](0) = d_norm_x / (_rho * _c) * pressure;
+                u[i][j](1) = d_norm_y / (_rho * _c) * pressure;
+                u[i][j](2) = pressure;
+                continue;
+            }
             pair<int, int> point = std::make_pair(i, j);
             if (IsInIrregular(point)) {
                 u[i][j] = irrEquation(i, j);
@@ -55,6 +87,7 @@ void System::solve() {
             else {
                 u[i][j] = equation(i, j);
             }
+            // u[i][j] = equation(i, j);
         }
     }
 }

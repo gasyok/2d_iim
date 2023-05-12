@@ -12,7 +12,7 @@ bool Curve::IsInIrregular(pair<int, int> point) {
 }
 double Curve::func(double x, double y) {
 
-    // return y - h / 2;
+    // return y + 0.25 - h / 2;
     return y + 0.2 - tan(0.4) * (x + 0.5);
     // return 0.3 + tan(0.4) * y - x;
     // return (x - h / 2) * (x - h / 2) + (y - h / 2) * (y - h / 2);
@@ -30,6 +30,9 @@ double Curve::curvature(double x, double y) {
 
     return curvature;
 }
+// double Curve::curvature(double x, double) {
+//     return 0;
+// }
 double Curve::get_x(int i) {
     return x[i];
 }
@@ -63,8 +66,8 @@ bool Curve::IsIrregular(int i, int j) {
     return false;
 }
 void Curve::SetIrregularPoints() {
-    for (int i = 0; i < x_size; ++i) {
-        for (int j = 0; j < y_size; ++j) {
+    for (int i = 1; i < x_size - 1; ++i) {
+        for (int j = 1; j < y_size - 1; ++j) {
             if (IsIrregular(i, j)) {
                 pair<int, int> current_point = make_pair(i, j);
                 irregular_points.insert(current_point);

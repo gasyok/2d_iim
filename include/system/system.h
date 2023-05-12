@@ -14,6 +14,6 @@ public:
     Vector3d GetValue(int i, int j);
     Vector3d equation(int i, int j);
     Vector3d irrEquation(int i, int j);
-    void solve();
+    void solve(double t);
     void shift();
 };
