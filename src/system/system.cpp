@@ -27,7 +27,7 @@ Vector3d System::equation(int i, int j) {
     // return u[i][j] -  0.5 * K * (A * (u[i1][j] - u[i2][j]) + B * (u[i][j1] - u[i][j2])) + 0.5 * K * K * c * c * (u[i1][j] + u[i2][j] + u[i][j1] + u[i][j2] - 4 * u[i][j]);
 }
 Vector3d System::irrEquation(int i, int j) {
-    Vector3d res (0, 0, 0);
+    Vector3d res (0.0, 0.0, 0.0);
 
     int i1 = (x_size + (i - 1)) % x_size;
     int i2 = (x_size + (i + 1)) % x_size;

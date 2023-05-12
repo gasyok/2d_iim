@@ -12,8 +12,8 @@ bool Curve::IsInIrregular(pair<int, int> point) {
 }
 double Curve::func(double x, double y) {
 
+    return y + 0.15 - tan(0.4) * (x + 0.5);
     // return y + 0.25 - h / 2;
-    return y + 0.2 - tan(0.4) * (x + 0.5);
     // return 0.3 + tan(0.4) * y - x;
     // return (x - h / 2) * (x - h / 2) + (y - h / 2) * (y - h / 2);
 }
@@ -30,9 +30,6 @@ double Curve::curvature(double x, double y) {
 
     return curvature;
 }
-// double Curve::curvature(double x, double) {
-//     return 0;
-// }
 double Curve::get_x(int i) {
     return x[i];
 }

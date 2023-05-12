@@ -93,10 +93,10 @@ InitValues::InitValues(double tau, double h, double c, double rho, double min_x,
     // Initialize pressure and velocity
 
     // Initialize other properties
-    rho_minus = 1.;
-    rho_plus = 1;
+    rho_minus = 1;
+    rho_plus = 1.5;
     c_minus = 2;
-    c_plus = 2;
+    c_plus = 3;
     k_minus = c_minus * c_minus * rho_minus;
     k_plus = c_plus * c_plus * rho_plus;
 

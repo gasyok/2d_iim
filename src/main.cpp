@@ -10,7 +10,7 @@ int main() {
     System mesh(init);
     vector<double> coord_x = init.GetCoordX();
     vector<double> coord_y = init.GetCoordY();
-    int N = 500;
+    int N = 600;
     int Mx = init.GetSizeX();
     int My = init.GetSizeY();
     for (int n = 0; n < N; ++n) {

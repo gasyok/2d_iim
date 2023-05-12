@@ -23,7 +23,6 @@ private:
     bool IsIrregular(int i, int j);
 
 public:
-    // double diff(double x, double y, bool is_x_derivative);
     bool is_opposite(int i, int j, int new_i, int new_j);
     double diff(std::function<double(double, double)> func, double x, double y, bool is_x_derivative) {
         const double epsilon = 1e-6;
@@ -33,22 +32,6 @@ public:
             return (func(x, y + epsilon) - func(x, y - epsilon)) / (2 * epsilon);
         }
     }
-    // double diff(double x, double y, bool is_x_derivative) {
-    //     if (is_x_derivative) {
-    //         return -tan(0.4);
-    //     }
-    //     else {
-    //         return 1.0;
-    //     }
-    // }
-    // double diff_diff(double x, double y, bool is_x_derivative) {
-    //     if (is_x_derivative) {
-    //         return 0;
-    //     }
-    //     else {
-    //         return 0;
-    //     }
-    // }
     void FPrint();
     double func(double x, double y);
     int x_size, y_size;
