@@ -9,6 +9,7 @@ private:
     // vector<double> coord_x, coord_y;
     vector<vector<Vector3d>> u;
     vector<vector<Vector3d>> u_next;
+    vector<double> boundary;
 public:
     System(InitValues init);
     Vector3d GetValue(int i, int j);

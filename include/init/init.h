@@ -13,14 +13,15 @@ private:
     vector<vector<double>> pressure, velocity_x, velocity_y;
     double tau, h, c, rho, min_x, max_x, min_y, max_y;
     int size_x, size_y;
+    double A, omega, alpha, x0, y0;
 public:
     Matrix3d A_minus, A_plus, B_minus, B_plus;
     double rho_minus, rho_plus, c_minus, c_plus, k_minus, k_plus;
     InitValues(double tau, double h, double c, double rho, double min_x,
-               double max_x, double min_y, double max_y, double x0, double y0, double A, double sigma, double a, double b);
+               double max_x, double min_y, double max_y, double x0, double y0, double A, double sigma, double alpha);
     InitValues();
-    void SetPressure(double x0, double y0, double A, double sigma, double a, double b);
-    void SetVelocity(double x0, double y0, double a, double b);
+    void SetInitU(double x0, double y0, double A, double sigma, double alpha);
+    vector<double> GetInitU();
 
     double GetTau();
     double GetH();
@@ -28,6 +29,7 @@ public:
     double GetSpeed();
     int GetSizeX();
     int GetSizeY();
+    void PrintInit();
 
     vector<double> GetCoordX();
     vector<double> GetCoordY();
