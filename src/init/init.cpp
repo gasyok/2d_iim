@@ -6,6 +6,7 @@
 
 double f(double x, double y) {
     return y - 0.3 - tan(0.4) * x;
+    // return (y - 0.5) * (y - 0.5) + (x - 0.5) * (x - 0.5) - 0.2 * 0.2;
 }
 vector<double> InitValues::GetInitU() {
     vector<double> res {x0, y0, A, omega, alpha};
@@ -80,12 +81,6 @@ void InitValues::SetInitU(double x0, double y0, double A, double omega, double a
                 pressure_transmited = 0.0;
             }
 
-            // pressure[i].push_back(pressure_initial);
-            // velocity_x[i].push_back(pressure_initial * a_initial(0) / (rho_minus * c_minus));
-            // velocity_y[i].push_back(pressure_initial * a_initial(1) / (rho_minus * c_minus));
-            // pressure[i].push_back(pressure_reflected + pressure_initial + pressure_transmited);
-            // velocity_x[i].push_back((pressure_initial * a_initial(0)  + pressure_reflected * a_reflected(0)) / (rho_minus * c_minus) + pressure_transmited * a_transmited(0) / (rho_plus * c_plus));
-            // velocity_y[i].push_back((pressure_initial * a_initial(1)  + pressure_reflected * a_reflected(1)) / (rho_minus * c_minus) + pressure_transmited * a_transmited(1) / (rho_plus * c_plus));
             if (f(coord_x[i], coord_y[j]) <= 0) {
                 pressure[i].push_back(pressure_reflected + pressure_initial);
                 velocity_x[i].push_back((pressure_initial * a_initial(0)  + pressure_reflected * a_reflected(0)) / (rho_minus * c_minus));
@@ -96,6 +91,26 @@ void InitValues::SetInitU(double x0, double y0, double A, double omega, double a
                 velocity_x[i].push_back(pressure_transmited * a_transmited(0) / (rho_plus * c_plus));
                 velocity_y[i].push_back(pressure_transmited * a_transmited(1) / (rho_plus * c_plus));
             }
+        }
+    }
+}
+void InitValues::SetInitRadU(double x0, double y0, double omega) {
+    double _pressure;
+    for (int i = 0; i < size_x; ++i) {
+        pressure.push_back(vector<double>());
+        velocity_x.push_back(vector<double>());
+        velocity_y.push_back(vector<double>());
+        for (int j = 0; j < size_y; ++j) {
+            double r = sqrt((coord_x[i] - x0) * (coord_x[i] - x0) + (coord_y[j] - y0) * (coord_y[j] - y0));
+            if (r >= 1 / omega) {
+                _pressure = 0.0;
+            }
+            else {
+                _pressure = 1 - cos(2 * M_PI * omega * r);
+            }
+            pressure[i].push_back(_pressure);
+            velocity_x[i].push_back(0);
+            velocity_y[i].push_back(1.0);
         }
     }
 }
@@ -132,7 +147,7 @@ double InitValues::GetTau() {
 double InitValues::GetH() {
     return h;
 }
-InitValues::InitValues() : InitValues(0.0004, 0.01, 2, 1, 0., 1, 0., 1, -0.3 / tan(0.4), 0, 1, 5, M_PI / 2 - 0.4) {}
+InitValues::InitValues() : InitValues(0.0004, 0.01, 2, 1, 0., 1, 0., 1, 0.5, 0.4, 1, 10, M_PI / 2 - 0.4) {}
 InitValues::InitValues(double tau, double h, double c, double rho, double min_x,
                        double max_x, double min_y, double max_y, double x0, double y0, double A, double omega, double alpha) 
     : tau(tau), h(h), c(c), rho(rho), size_x(static_cast<int>((max_x - min_x) / h)), size_y(static_cast<int>((max_y - min_y) / h)), x0(x0), y0(y0), A(A), alpha(alpha), omega(omega) {
@@ -151,14 +166,14 @@ InitValues::InitValues(double tau, double h, double c, double rho, double min_x,
     // Initialize pressure and velocity
 
     // Initialize other properties
-    // rho_minus = 1.0;
-    // rho_plus = 0.8;
-    // c_minus = 1.5;
-    // c_plus = 1.;
     rho_minus = 1.0;
-    rho_plus = 1.;
-    c_minus = 1.;
+    rho_plus = 0.8;
+    c_minus = 1.5;
     c_plus = 1.;
+    // rho_minus = 1.0;
+    // rho_plus = 1.;
+    // c_minus = 1.;
+    // c_plus = 1.;
     k_minus = c_minus * c_minus * rho_minus;
     k_plus = c_plus * c_plus * rho_plus;
 
@@ -174,6 +189,7 @@ InitValues::InitValues(double tau, double h, double c, double rho, double min_x,
     B_plus << 0, 0, 0,
                0, 0, 1 / rho_plus,
                0, k_plus, 0;
-    SetInitU(x0, y0, A, omega, alpha);
+    // SetInitU(x0, y0, A, omega, alpha);
+    SetInitRadU(x0, y0, omega);
     PrintInit();
 }

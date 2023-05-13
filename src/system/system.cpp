@@ -69,8 +69,8 @@ void System::solve(double t) {
     a_transmited = R * a_transmited;
     double omega_t = omega * cos(alpha) / cos_alpha_transm;
 
-    for (int i = 0; i < x_size; ++i) {
-        for (int j = 0; j < y_size ; ++j) {
+    for (int i = 1; i < x_size - 1; ++i) {
+        for (int j = 1; j < y_size - 1; ++j) {
             if (i == 0 || i == x_size - 1 || j == 0 || j == y_size - 1) {
                 double xi_initial = a_initial(0) * (get_x(i) - x0) + a_initial(1) * (get_y(j) - y0) - c_minus * t;
                 double xi_reflected = a_reflected(0) * (get_x(i) - x0) + a_reflected(1) * (get_y(j) - y0) - c_minus * t;

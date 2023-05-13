@@ -13,6 +13,7 @@ bool Curve::IsInIrregular(pair<int, int> point) {
 double Curve::func(double x, double y) {
 
     return y - 0.3 - tan(0.4) * x;
+    // return (y - 0.5) * (y - 0.5) + (x - 0.5) * (x - 0.5) - tan(0.4) * tan(0.4) * tan(0.4) * tan(0.4);
     // return y + 0.25 - h / 2;
     // return 0.3 + tan(0.4) * y - x;
     // return (x - h / 2) * (x - h / 2) + (y - h / 2) * (y - h / 2);

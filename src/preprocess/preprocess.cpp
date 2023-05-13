@@ -69,6 +69,11 @@ Vector2d PreProcess::GetOrigin(pair<int, int> point) {
             break;
         }
     }
+    // double p;
+    // double _alpha = 0.4;
+    // p = 0.3 + tan(0.4) * get_x(i) - get_y(j);
+    // Vector2d tmp (get_x(i) - p * cos(_alpha) * sin(_alpha), get_y(j) + p * cos(_alpha) * cos(_alpha));
+    // res = tmp;
     return res;
 }
 Eigen::Vector2d PreProcess::normalize(const Eigen::Vector2d& vec) {
@@ -204,32 +209,25 @@ Matrix3d PreProcess::GetQmatrix(int i, int l, pair<int, int> point) {
     }
 }
 Matrix3d PreProcess::GetFmatrix(int i, pair<int, int> point) {
-    Matrix3d A = A_minus, B = B_minus;
-    double c = c_minus;
+    Matrix3d _A = A_minus;
+    Matrix3d _B = B_minus;
+    double _c = c_minus;
 
     Vector2d new_coord = GetRotationalCoord(1, point);
     double xi = new_coord(0);
     double eta = new_coord(1);
-    const double eps = 1e-12;
 
     if (func(get_x(point.first), get_y(point.second)) > 0.0) {
-        A = A_plus;
-        B = B_plus;
-        c = c_plus;
+        _A = A_plus;
+        _B = B_plus;
+        _c = c_plus;
     }
     Matrix3d f1 = Matrix3d::Zero();
-    Matrix3d f2 = -A;
-    Matrix3d f3 = -B;
-    Matrix3d f4 = (k / h) * c * c * Matrix3d::Identity() - 2 * xi / h * A;
-    Matrix3d f5 = -2 / h * (eta * A + xi * B);
-    Matrix3d f6 = (k / h) * c * c * Matrix3d::Identity() - 2 / h * eta * B;
-    // Matrix3d f1 = Matrix3d::Zero();
-    // Matrix3d f2 = -h * A;
-    // Matrix3d f3 = -h * B;
-    // Matrix3d f4 = (k * h) * c * c * Matrix3d::Identity() - 2 * xi / h * A;
-    // Matrix3d f5 = -2 * h * (eta * A + xi * B);
-    // Matrix3d f6 = (k * h) * c * c * Matrix3d::Identity() - 2 * h * eta * B;
-
+    Matrix3d f2 = -_A;
+    Matrix3d f3 = -_B;
+    Matrix3d f4 = (k / h) * _c * _c * Matrix3d::Identity() - 2 * xi / h * _A;
+    Matrix3d f5 = -2 / h * (eta * _A + xi * _B);
+    Matrix3d f6 = (k / h) * _c * _c * Matrix3d::Identity() - 2 / h * eta * _B;
 
     vector<Matrix3d> matrices = {f1, f2, f3, f4, f5, f6};
     return matrices[i];
