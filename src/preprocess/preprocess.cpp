@@ -93,22 +93,20 @@ Vector2d PreProcess::GetRotationalCoord(int l, pair<int, int>point) {
     Vector2d origin = GetOrigin(point);
 
     // Создание матрицы обратного поворота R(-β)
-    Eigen::Matrix2d R_inv;
     // Vector2d Deriv (DerivationX(origin(0), origin(1)), DerivationY(origin(0), origin(1)));
     // Vector2d Deriv (diff(func, origin(0), origin(1), true), diff(func, origin(0), origin(1), false));
     Vector2d Deriv(diff([this](double x, double y) { return func(x, y); }, origin(0), origin(1), true),
                    diff([this](double x, double y) { return func(x, y); }, origin(0), origin(1), false));
 
-    Vector2d normalized = normalize(Deriv);
-
-    R_inv << normalized(0), -normalized(1),
-        normalized(1),  normalized(0);
-
-    // Создание вектора (x_l - x₀, y_l - y₀)
-
+    Matrix2d R;
+    double f_x = diff([this](double x, double y) { return func(x, y); }, origin(0), origin(1), true);
+    double f_y = diff([this](double x, double y) { return func(x, y); }, origin(0), origin(1), false);
+    double sinus = f_y / sqrt(f_x * f_x + f_y * f_y);
+    double cosinus = f_x / sqrt(f_x * f_x + f_y * f_y);
+    R << cosinus, -sinus,
+        sinus, cosinus;
     // Умножение матрицы обратного поворота на вектор (x_l - x₀, y_l - y₀)
-    Eigen::Vector2d result = R_inv.inverse() * (vec_point - origin);
-
+    Eigen::Vector2d result = R.inverse() * (vec_point - origin);
     return result;
 }
 Matrix3d PreProcess::RotateMatrix(pair<int, int> point, Matrix3d matrix) {
@@ -119,9 +117,14 @@ Matrix3d PreProcess::RotateMatrix(pair<int, int> point, Matrix3d matrix) {
                    diff([this](double x, double y) { return func(x, y); }, origin(0), origin(1), false));
 
     Vector2d normalized = normalize(Deriv);
-    Q_zero << normalized(0), -normalized(1), 0,
-        normalized(1), normalized(0), 0,
-        0, 0, 1;
+    double f_x = diff([this](double x, double y) { return func(x, y); }, origin(0), origin(1), true);
+    double f_y = diff([this](double x, double y) { return func(x, y); }, origin(0), origin(1), false);
+    double sinus = f_y / sqrt(f_x * f_x + f_y * f_y);
+    double cosinus = f_x / sqrt(f_x * f_x + f_y * f_y);
+
+    Q_zero << cosinus, sinus, 0,
+            -sinus, cosinus, 0,
+            0, 0, 1;
     return Q_zero * matrix * Q_zero.inverse();
 }
 vector<Matrix3d> PreProcess::GetDefaultQ (pair<int, int> point) {
@@ -161,12 +164,48 @@ Matrix3d PreProcess::OppositeQ(int i, int l, pair<int, int> point) {
     const double eps = 1e-12;
     double eta = new_coord(1);
     double c_temp = c_minus / c_plus;
+    double t = 1;
     if (func(get_x(point.first), get_y(point.second)) > 0.0) {
         c_temp = 1 / c_temp;
+        t = -1;
     }
     Vector2d origin = GetOrigin(point);
-    double curvature_value = curvature(origin(0), origin(1));
-    // double curvature_value = 0.0;
+
+    double f_x = diff([this](double x, double y) { return func(x, y); }, origin(0), origin(1), true);
+    double f_y = diff([this](double x, double y) { return func(x, y); }, origin(0), origin(1), false);
+    double f_xx = diff([this, &f_x](double x, double y) { return diff([this](double x, double y) { return func(x, y); }, x, y, true);}, origin(0), origin(1), true);
+    double f_xy = diff([this, &f_y](double x, double y) { return diff([this](double x, double y) { return func(x, y); }, x, y, true);}, origin(0), origin(1), false);
+    double f_yx = diff([this, &f_x](double x, double y) { return diff([this](double x, double y) { return func(x, y); }, x, y, false);}, origin(0), origin(1), true);
+    double f_yy = diff([this, &f_y](double x, double y) { return diff([this](double x, double y) { return func(x, y); }, x, y, false);}, origin(0), origin(1), false);
+    Matrix2d R;
+    double sinus = f_y / sqrt(f_x * f_x + f_y * f_y);
+    double cosinus = f_x / sqrt(f_x * f_x + f_y * f_y);
+    R << cosinus, -sinus,
+        sinus, cosinus;
+
+    Vector2d Deriv1 (f_x, f_y);
+
+    Matrix2d R_inv = R.inverse();
+    Matrix2d Deriv2;
+    Deriv2 << f_xx, f_xy,
+                f_yx, f_yy;
+
+    Vector2d normalized = normalize(Deriv1);
+
+    Vector2d new_deriv1 = R_inv * Deriv1;
+    Matrix2d new_deriv2 = R_inv * Deriv2 * R;
+    // std::cout << "deriv 1" <<  new_deriv1 << std::endl;
+    // std::cout << "deriv 2" << new_deriv2 << std::endl;
+
+    double denom = new_deriv1(0);
+    double num = new_deriv2(1, 1);
+    // std::cout << "num " << num << "\ndenom " << denom << std::endl;
+    double new_curvature_value = num / denom;
+
+    double old_curvature_value = curvature(origin(0), origin(1));
+    std::cout << "Curv: " << new_curvature_value << "\nOld " << old_curvature_value << std::endl;
+    // double curvature_value = 1 / (0.2 + h / 2);
+    double curvature_value = new_curvature_value;
 
     vector<Matrix3d> matrices_default = GetDefaultQ(point);
     Matrix3d q1 = matrices_default[0];

@@ -12,7 +12,7 @@ Vector3d System::equation(int i, int j) {
     Matrix3d A = A_minus;
     Matrix3d B = B_minus;
 
-    if (func(get_x(i), get_y(j)) >= 0.0) {
+    if (func(get_x(i), get_y(j)) > 0.0) {
         A = A_plus;
         B = B_plus;
         c = c_plus;
@@ -69,57 +69,22 @@ void System::solve(double t) {
     a_transmited = R * a_transmited;
     double omega_t = omega * cos(alpha) / cos_alpha_transm;
 
-    for (int i = 1; i < x_size - 1; ++i) {
-        for (int j = 1; j < y_size - 1; ++j) {
-            if (i == 0 || i == x_size - 1 || j == 0 || j == y_size - 1) {
-                double xi_initial = a_initial(0) * (get_x(i) - x0) + a_initial(1) * (get_y(j) - y0) - c_minus * t;
-                double xi_reflected = a_reflected(0) * (get_x(i) - x0) + a_reflected(1) * (get_y(j) - y0) - c_minus * t;
-                double xi_transmited = a_transmited(0) * (get_x(i) - x0) + a_transmited(1) * (get_y(j) - y0) - c_plus * t;
-                double pressure_initial, pressure_reflected, pressure_transmited;
-                if (xi_initial >= 0 && xi_initial <= 1 / omega) {
-                    pressure_initial = 0.5 * A * (1 - cos(2 * M_PI * omega * xi_initial));
-                }
-                else {
-                    pressure_initial = 0.0;
-                }
-                if (xi_reflected >= 0 && xi_reflected <= 1 / omega) {
-                    pressure_reflected = 0.5 * A_r * (1 - cos(2 * M_PI * omega * xi_reflected));
-                }
-                else {
-                    pressure_reflected = 0.0;
-                }
-                if (xi_transmited >= 0 && xi_transmited <= 1 / omega_t) {
-                    pressure_transmited = 0.5 * A_t * (1 - cos(2 * M_PI * omega_t * xi_transmited));
-                }
-                else {
-                    pressure_transmited = 0.0;
-                }
-                double press, vel_x, vel_y;
-                if (func(get_x(i), get_y(j)) <= 0) {
-                    press = pressure_reflected + pressure_initial;
-                    vel_x = (pressure_initial * a_initial(0)  + pressure_reflected * a_reflected(0)) / (rho_minus * c_minus);
-                    vel_y = (pressure_initial * a_initial(1)  + pressure_reflected * a_reflected(1)) / (rho_minus * c_minus);
-                    u[i][j](0) = vel_x;
-                    u[i][j](1) = vel_y;
-                    u[i][j](2) = press;
-                }
-                else {
-                    press = (pressure_transmited);
-                    vel_x = (pressure_transmited * a_transmited(0) / (rho_plus * c_plus));
-                    vel_y = (pressure_transmited * a_transmited(1) / (rho_plus * c_plus));
-                    u[i][j](0) = vel_x;
-                    u[i][j](1) = vel_y;
-                    u[i][j](2) = press;
-                }
-            }
-            pair<int, int> point = std::make_pair(i, j);
-            if (IsInIrregular(point)) {
-                u[i][j] = irrEquation(i, j);
-            }
-            else {
-                u[i][j] = equation(i, j);
-            }
-        }
+    // for (int i = 1; i < x_size - 1; ++i) {
+    //     for (int j = 1; j < y_size - 1; ++j) {
+    //         pair<int, int> point = std::make_pair(i, j);
+    //         if (IsInIrregular(point)) {
+    //             u[i][j] = irrEquation(i, j);
+    //         }
+    //         else {
+    //             u[i][j] = equation(i, j);
+    //         }
+    //     }
+    // }
+    for (auto c : irregular_points) {
+        u[c.first][c.second] = irrEquation(c.first, c.second);
+    }
+    for (auto c : regular_points) {
+        u[c.first][c.second] = equation(c.first, c.second);
     }
 }
 void System::shift() {
@@ -146,4 +111,6 @@ System::System(InitValues init) : PreProcess(init) {
             u_next[i].push_back(tmp);
         }
     }
+    irregular_points = GetIrregularPoints();
+    regular_points = GetRegularPoints();
 }

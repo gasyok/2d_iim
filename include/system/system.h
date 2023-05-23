@@ -10,6 +10,8 @@ private:
     vector<vector<Vector3d>> u;
     vector<vector<Vector3d>> u_next;
     vector<double> boundary;
+    unordered_set<pair<int, int>, pair_hash> irregular_points;
+    unordered_set<pair<int, int>, pair_hash> regular_points;
 public:
     System(InitValues init);
     Vector3d GetValue(int i, int j);

@@ -102,15 +102,15 @@ void InitValues::SetInitRadU(double x0, double y0, double omega) {
         velocity_y.push_back(vector<double>());
         for (int j = 0; j < size_y; ++j) {
             double r = sqrt((coord_x[i] - x0) * (coord_x[i] - x0) + (coord_y[j] - y0) * (coord_y[j] - y0));
-            if (r >= 1 / omega) {
+            if (r > 1 / omega) {
                 _pressure = 0.0;
             }
             else {
-                _pressure = 1 - cos(2 * M_PI * omega * r);
+                _pressure = 1 - cos(2 * M_PI * r * omega);
             }
             pressure[i].push_back(_pressure);
             velocity_x[i].push_back(0);
-            velocity_y[i].push_back(1.0);
+            velocity_y[i].push_back(0);
         }
     }
 }
@@ -147,7 +147,7 @@ double InitValues::GetTau() {
 double InitValues::GetH() {
     return h;
 }
-InitValues::InitValues() : InitValues(0.0004, 0.01, 2, 1, 0., 1, 0., 1, 0.5, 0.4, 1, 10, M_PI / 2 - 0.4) {}
+InitValues::InitValues() : InitValues(0.0004, 0.01, 2, 1, 0., 1, 0., 1, 0.73, 0.5, 1, 10, M_PI / 2 - 0.4) {}
 InitValues::InitValues(double tau, double h, double c, double rho, double min_x,
                        double max_x, double min_y, double max_y, double x0, double y0, double A, double omega, double alpha) 
     : tau(tau), h(h), c(c), rho(rho), size_x(static_cast<int>((max_x - min_x) / h)), size_y(static_cast<int>((max_y - min_y) / h)), x0(x0), y0(y0), A(A), alpha(alpha), omega(omega) {
@@ -166,14 +166,14 @@ InitValues::InitValues(double tau, double h, double c, double rho, double min_x,
     // Initialize pressure and velocity
 
     // Initialize other properties
-    rho_minus = 1.0;
-    rho_plus = 0.8;
-    c_minus = 1.5;
-    c_plus = 1.;
-    // rho_minus = 1.0;
-    // rho_plus = 1.;
-    // c_minus = 1.;
+    // rho_minus = 1.;
+    // rho_plus = 1;
+    // c_minus = 1.3;
     // c_plus = 1.;
+    rho_minus = 1;
+    rho_plus = 1.;
+    c_minus = 1;
+    c_plus = 1;
     k_minus = c_minus * c_minus * rho_minus;
     k_plus = c_plus * c_plus * rho_plus;
 

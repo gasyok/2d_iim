@@ -2,7 +2,6 @@
 #include <init/init.h>
 #include <unordered_set>
 #include <unordered_map>
-#include <functional>
 #include <utility>
 
 using std::pair;
@@ -18,6 +17,7 @@ struct pair_hash {
 class Curve {
 private:
     unordered_set<pair<int, int>, pair_hash> irregular_points;
+    unordered_set<pair<int, int>, pair_hash> regular_points;
     vector<double> x;
     vector<double> y;
     bool IsIrregular(int i, int j);
@@ -41,6 +41,7 @@ public:
     double curvature(double x, double y);
     void SetIrregularPoints();
     unordered_set<pair<int, int>, pair_hash> GetIrregularPoints();
+    unordered_set<pair<int, int>, pair_hash> GetRegularPoints();
     double get_x(int i);
     double get_y(int j);
     bool IsInIrregular(pair<int, int> point);
