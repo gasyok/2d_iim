@@ -14,15 +14,14 @@ struct pair_hash {
     }
 };
 
-class Curve {
+class Curve : public InitValues {
 private:
-    unordered_set<pair<int, int>, pair_hash> irregular_points;
-    unordered_set<pair<int, int>, pair_hash> regular_points;
-    vector<double> x;
-    vector<double> y;
     bool IsIrregular(int i, int j);
 
 public:
+    Curve(double _tau, double _h, int _Mx, int _My, double _x0, double _y0, double _A, double _omega, double _alpha);
+    unordered_set<pair<int, int>, pair_hash> irregular_points;
+    unordered_set<pair<int, int>, pair_hash> regular_points;
     bool is_opposite(int i, int j, int new_i, int new_j);
     double diff(std::function<double(double, double)> func, double x, double y, bool is_x_derivative) {
         const double epsilon = 1e-6;
@@ -34,15 +33,5 @@ public:
     }
     void FPrint();
     double func(double x, double y);
-    int x_size, y_size;
-    double h, k;
-    Curve();
-    Curve(InitValues init);
-    double curvature(double x, double y);
     void SetIrregularPoints();
-    unordered_set<pair<int, int>, pair_hash> GetIrregularPoints();
-    unordered_set<pair<int, int>, pair_hash> GetRegularPoints();
-    double get_x(int i);
-    double get_y(int j);
-    bool IsInIrregular(pair<int, int> point);
 };

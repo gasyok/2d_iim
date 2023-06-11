@@ -15,10 +15,8 @@ private:
     Matrix3d GetQmatrix(int i, int l, pair<int, int> point);
     Matrix3d GetFmatrix(int i, pair<int, int> point);
     vector<Matrix3d> CalcGammaMatrices(pair<int, int> point);
+    void Solve();
 public:
     std::unordered_map<std::pair<int, int>, std::vector<Eigen::Matrix3d>, pair_hash> gamma_matrices;
-    Matrix3d A_minus, A_plus, B_minus, B_plus;
-    double rho_minus, rho_plus, c_minus, c_plus, k_minus, k_plus;
-    PreProcess(InitValues init);
-    void Solve();
+    PreProcess(double _tau, double _h, int _Mx, int _My, double _x0, double _y0, double _A, double _omega, double _alpha);
 };
