@@ -8,24 +8,6 @@ double f(double x, double y) {
     return y - 0.3 - tan(0.4) * x;
     // return (y - 0.5) * (y - 0.5) + (x - 0.5) * (x - 0.5) - 0.2 * 0.2;
 }
-
-void InitValues::PrintInit() {
-    std::ostringstream fileinit;
-    fileinit << "../bin/animation/init_out.bin";
-    std::ofstream file(fileinit.str(), std::ios::binary);
-    for (int i = 0; i < M; ++i) {
-        for (int j = 0; j < M; ++j) {
-            float x_coord = i * h;
-            float y_coord = j * h;
-            float pressure_value = u[i][j](2);
-            // Запись x, y и p(x, y) (каждый параметр - 4 байта, little-endian)
-            file.write(reinterpret_cast<char*>(&x_coord), sizeof(x_coord));
-            file.write(reinterpret_cast<char*>(&y_coord), sizeof(y_coord));
-            file.write(reinterpret_cast<char*>(&pressure_value), sizeof(pressure_value));
-        }
-    }
-    file.close();
-}
 // void InitValues::SetInitU(double x0, double y0, double A, double omega, double alpha) {
 //     // x0 = -0.3;
 //     // y0 = 0.3 + tan(0.4) * x0;
@@ -91,18 +73,41 @@ void InitValues::PrintInit() {
 //         }
 //     }
 // }
-void InitValues::SetInitRadU(double x0, double y0, double omega) {
+double InitValues::foo(double xi) {
+    if (xi <= omega && xi >= -omega) {
+        return pow(cos(0.5 * M_PI * xi / omega), 2);
+    }
+    return 0.0;
+}
+
+void InitValues::SetInitPlaneU() {
+    double _pressure;
+    Matrix3d p_alpha;
+    p_alpha << cos(alpha), sin(alpha), 0,
+                -sin(alpha), cos(alpha), 0,
+                0, 0, 1;
+    Matrix2d rotation;
+    rotation << cos(alpha), -sin(alpha),
+                sin(alpha), cos(alpha);
+
+    Vector3d const_u (1 / (rho_minus * c_minus), 0, 1);
+
+    for (int i = 0; i < M; ++i) {
+        u.push_back(vector<Vector3d>());
+        for (int j = 0; j < M; ++j) {
+            double xi = i * h - x0;
+            _pressure = foo(xi);
+            u[i].push_back(Vector3d(_pressure / (c_minus * rho_minus), 0.0, _pressure));
+        }
+    }
+}
+void InitValues::SetInitRadU() {
     double _pressure;
     for (int i = 0; i < M; ++i) {
         u.push_back(vector<Vector3d>());
         for (int j = 0; j < M; ++j) {
             double r = sqrt((i * h - x0) * (i * h - x0) + (j * h - y0) * (j * h - y0));
-            if (r >= omega) {
-                _pressure = 0.0;
-            }
-            else {
-                _pressure = pow(cos(0.5 * M_PI * r / omega), 2);
-            }
+            _pressure = foo(r);
             u[i].push_back(Vector3d(0, 0, _pressure));
         }
     }
@@ -115,8 +120,8 @@ InitValues::InitValues(int _M, double _x0, double _y0, double _A, double _omega,
     rho_minus = 1;
     c_minus = 1;
 
-    rho_plus = 1;
-    c_plus = 1;
+    rho_plus = 1.5;
+    c_plus = 1.5;
 
     k_minus = c_minus * c_minus * rho_minus;
     k_plus = c_plus * c_plus * rho_plus;
@@ -144,9 +149,8 @@ InitValues::InitValues(int _M, double _x0, double _y0, double _A, double _omega,
     B_plus << 0, 0, 0,
                0, 0, 1 / rho_plus,
                0, k_plus, 0;
-    // SetInitU(x0, y0, A, omega, alpha);
-    SetInitRadU(x0, y0, omega);
-    PrintInit();
+    // SetInitRadU();
+    SetInitPlaneU();
     std::cout << "TAU: " << tau << std::endl;
     std::cout << "CIR LEFT: " << c_minus * tau / h << std::endl;
     std::cout << "CIR RIGHT: " << c_plus * tau / h << std::endl;

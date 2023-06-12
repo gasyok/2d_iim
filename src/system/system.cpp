@@ -48,17 +48,17 @@ Vector3d System::irrEquation(int i, int j) {
 }
 void System::solve(double t) {
     vector<vector<Vector3d>> new_u = u;
-    // for (auto c : irregular_points) {
-    //     new_u[c.first][c.second] = irrEquation(c.first, c.second);
-    // }
-    // for (auto c : regular_points) {
-    //     new_u[c.first][c.second] = equation(c.first, c.second);
-    // }
-    for (int i = 1; i < M-1; ++i) {
-        for (int j = 1; j < M-1; ++j) {
-            new_u[i][j] = equation(i, j);
-        }
+    for (auto c : irregular_points) {
+        new_u[c.first][c.second] = irrEquation(c.first, c.second);
     }
+    for (auto c : regular_points) {
+        new_u[c.first][c.second] = equation(c.first, c.second);
+    }
+    // for (int i = 1; i < M-1; ++i) {
+    //     for (int j = 1; j < M-1; ++j) {
+    //         new_u[i][j] = equation(i, j);
+    //     }
+    // }
     u = new_u;
 }
 void System::sample() {
@@ -67,24 +67,7 @@ void System::sample() {
     file_list << "<?xml version=\"1.0\"?>\n";
     file_list << "<VTKFile type=\"Collection\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
     file_list << "  <Collection>\n";
-    while (n < 50) {
-        // Формирование имени файла с индексом временного шага
-        // std::ostringstream filename;
-        // filename << "../bin/animation/velocity_out_" << std::setfill('0') << std::setw(5) << n << ".bin";
-        // std::ofstream file_velocity(filename.str(), std::ios::binary);
-        // // Запись количества точек данных для текущего временного шага (4 байта, little-endian)
-        // for (int i = 0; i < M; ++i) {
-        //     for (int j = 0; j < M; ++j) {
-        //         float x_coord = h * i;
-        //         float y_coord = h * j;
-        //         float pressure_value = GetValue(i, j)(2);
-        //         // Запись x, y и p(x, y) (каждый параметр - 4 байта, little-endian)
-        //         file_velocity.write(reinterpret_cast<char*>(&x_coord), sizeof(x_coord));
-        //         file_velocity.write(reinterpret_cast<char*>(&y_coord), sizeof(y_coord));
-        //         file_velocity.write(reinterpret_cast<char*>(&pressure_value), sizeof(pressure_value));
-        //     }
-        // }
-        // file_velocity.close();
+    while (n < total_steps) {
         std::ostringstream filename;
         filename << "velocity_out_" << std::setfill('0') << std::setw(5) << n << ".vtk";
         std::ofstream file_velocity("../bin/animation/" + filename.str());
@@ -104,9 +87,6 @@ void System::sample() {
         for (int i = 0; i < M; ++i) {
             for (int j = 0; j < M; ++j) {
                 float pressure_value = u[i][j](2);
-                // float pressure_value = static_cast<float>(u[i][j](2));
-                // float pressure_value = GetValue(i, j)(2);
-                // file_velocity << std::setprecision(5) << pressure_value << "\n";
                 file_velocity << pressure_value << "\n";
             }
         }
@@ -123,4 +103,5 @@ void System::sample() {
 
 System::System(int _M, double _x0, double _y0, double _A, double _omega, double _alpha)
     : PreProcess(_M, _x0, _y0, _A, _omega, _alpha) {
+    total_steps = 400;
 }

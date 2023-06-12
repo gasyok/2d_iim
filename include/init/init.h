@@ -20,7 +20,7 @@ public:
     double cir_left, cir_right;
 
     InitValues(int _M, double _x0, double _y0, double _A, double _omega, double _alpha);
-    void SetInitU(double x0, double y0, double A, double omega, double alpha);
-    void SetInitRadU(double x0, double y0, double omega);
-    void PrintInit();
+    void SetInitPlaneU();
+    void SetInitRadU();
+    double foo(double xi);
 };
