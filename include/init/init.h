@@ -9,8 +9,8 @@ using std::vector;
 class InitValues {
 private:
     // vector<double> coord_x, coord_y, velocity_x, velocity_y;
-    double A, omega, alpha, x0, y0;
 public:
+    double A, omega, alpha, x0, y0;
     vector<vector<Vector3d>> u;
     Matrix3d A_minus, A_plus, B_minus, B_plus;
     double rho_minus, rho_plus, c_minus, c_plus, k_minus, k_plus;

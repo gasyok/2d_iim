@@ -9,6 +9,12 @@ using std::make_pair;
 double Curve::func(double x, double y) {
     // return x - 1.2 + 1e-10;
     return (x - 1.2) * (x - 1.2) + (y - 1) * (y - 1) - (0.2 + 1e-10) * (0.2 + 1e-10);
+
+    // return abs(x - 1.2) + abs(y - 1) - (0.2 + 0.5 * h);
+
+    // double _x = x - x0;
+    // double _y = y - y0;
+    // return pow(_x*_x + _y*_y - 0.005, 3) - _x*_x * _y*_y*_y;
 }
 void Curve::FPrint() {
     std::ostringstream filename;
@@ -37,7 +43,7 @@ bool Curve::IsIrregular(int i, int j) {
 }
 void Curve::SetIrregularPoints() {
     for (int i = 1; i < M - 1; ++i) {
-        for (int j = 0; j < M; ++j) {
+        for (int j = 1; j < M - 1; ++j) {
             pair<int, int> current_point = make_pair(i, j);
             // if (i == 0 || i == x_size - 1 || j == 0 || j == y_size - 1) {
             //     regular_points.insert(current_point);

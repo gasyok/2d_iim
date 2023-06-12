@@ -87,6 +87,10 @@ void System::sample() {
         for (int i = 0; i < M; ++i) {
             for (int j = 0; j < M; ++j) {
                 float pressure_value = u[i][j](2);
+                if (abs(pressure_value) >= 10.0) {
+                    std::cout << "Error:\n" << pressure_value << "\ni = " << i << ", j = " << j << "\n";
+                    exit(-1);
+                }
                 file_velocity << pressure_value << "\n";
             }
         }

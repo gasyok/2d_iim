@@ -97,7 +97,7 @@ void InitValues::SetInitPlaneU() {
         for (int j = 0; j < M; ++j) {
             double xi = i * h - x0;
             _pressure = foo(xi);
-            u[i].push_back(Vector3d(_pressure / (c_minus * rho_minus), 0.0, _pressure));
+            u[i].push_back(Vector3d(_pressure / (c_plus * rho_plus), 0.0, _pressure));
         }
     }
 }
@@ -149,8 +149,8 @@ InitValues::InitValues(int _M, double _x0, double _y0, double _A, double _omega,
     B_plus << 0, 0, 0,
                0, 0, 1 / rho_plus,
                0, k_plus, 0;
-    // SetInitRadU();
-    SetInitPlaneU();
+    SetInitRadU();
+    // SetInitPlaneU();
     std::cout << "TAU: " << tau << std::endl;
     std::cout << "CIR LEFT: " << c_minus * tau / h << std::endl;
     std::cout << "CIR RIGHT: " << c_plus * tau / h << std::endl;

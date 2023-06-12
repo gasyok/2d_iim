@@ -59,19 +59,75 @@ Vector2d PreProcess::GetOrigin(pair<int, int> point) {
     int j2 = (M + (j + 1)) % M;
 
 
-    const vector<pair<int, int>> offsets = {{i1, j}, {i, j}, {i2, j}, {i, j2}, {i, j1}};
-    // const vector<pair<int, int>> offsets = {{i, j1}, {i, j}, {i, j2}, {i2, j}, {i1, j}};
-    Vector2d res;
+    // const vector<pair<int, int>> offsets = {{i1, j}, {i, j}, {i2, j}, {i, j2}, {i, j1}};
+    // // const vector<pair<int, int>> offsets = {{i, j1}, {i, j}, {i, j2}, {i2, j}, {i1, j}};
+    // Vector2d res;
+    //
+    // for (const auto& offset : offsets) {
+    //     int new_i = offset.first;
+    //     int new_j = offset.second;
+    //
+    //     if(is_opposite(i, j, new_i, new_j)) {
+    //         res = bisection(h * i, h * new_i, h * j, h * new_j);
+    //         break;
+    //     }
+    // }
+    // return res;
+    double f_x = diff([this](double x, double y) { return func(x, y); }, i * h, j * h, true);
+    double f_y = diff([this](double x, double y) { return func(x, y); }, i * h, j * h, false);
+    double f_xx = diff([this, &f_x](double x, double y) { return diff([this](double x, double y) { return func(x, y); }, x, y, true);}, i * h, j * h, true);
+    double f_xy = diff([this, &f_y](double x, double y) { return diff([this](double x, double y) { return func(x, y); }, x, y, true);}, i * h, j * h, false);
+    double f_yx = diff([this, &f_x](double x, double y) { return diff([this](double x, double y) { return func(x, y); }, x, y, false);}, i * h, j * h, true);
+    double f_yy = diff([this, &f_y](double x, double y) { return diff([this](double x, double y) { return func(x, y); }, x, y, false);}, i * h, j * h, false);
 
-    for (const auto& offset : offsets) {
-        int new_i = offset.first;
-        int new_j = offset.second;
+    Matrix2d Hessian;
+    Hessian << f_xx, f_xy,
+                f_yx, f_yy;
 
-        if(is_opposite(i, j, new_i, new_j)) {
-            res = bisection(h * i, h * new_i, h * j, h * new_j);
-            break;
-        }
+    double norm = sqrt(f_x * f_x + f_y * f_y);
+
+    Vector2d grad_f (f_x, f_y);
+
+    Vector2d p (f_x / norm, f_y / norm);
+
+    Vector2d p_t = p.transpose();
+
+    Vector2d hessianP = Hessian * p;
+
+    double ax = 0.5 * (p_t.dot(hessianP));
+    double bx = norm;
+    double cx = func(i * h, j * h);
+
+    if (ax == 0 && bx == 0) {
+        std::cout << "Cant Find x0 y0\n";
+        exit(-1);
     }
+    double discr = bx * bx - 4 * ax * cx;
+    if (discr < 0) {
+        std::cout << "ERROR in DIscr!\n";
+        exit(-1);
+    }
+
+    if (ax != 0) {
+        double alpha_1 = (0.5 / ax) * (-bx + sqrt(discr));
+        double alpha_2 = (0.5 / ax) * (-bx - sqrt(discr));
+
+        Vector2d atmpt1 = Vector2d(i * h, j * h) + alpha_1 * p;
+        Vector2d atmpt2 = Vector2d(i * h, j * h) + alpha_2 * p;
+
+        if (abs(func(atmpt1(0), atmpt1(1))) < abs(func(atmpt2(0), atmpt2(1)))) {
+            // std::cout << "Atmpt1:\n" << atmpt1 << std::endl;
+            // std::cout << "FUNC: " << func(atmpt1(0), atmpt1(1)) << std::endl;
+            return atmpt1;
+        }
+        // std::cout << "Atmpt2:\n" << atmpt1 << std::endl;
+        // std::cout << "FUNC: " << func(atmpt2(0), atmpt2(1)) << std::endl;
+        return atmpt2;
+    }
+    Vector2d res;
+    res = Vector2d(i * h, j * h) - (cx / bx) * p;
+    // std::cout << "Atmpt0:\n" << res << std::endl;
+    // std::cout << "FUNC: " << func(res(0), res(1)) << std::endl;
     return res;
 }
 
