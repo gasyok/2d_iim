@@ -7,14 +7,7 @@
 using std::make_pair;
 
 double Curve::func(double x, double y) {
-
-    // return y - 0.3 - tan(0.4) * x;
-    // return (y - 0.5) - h / 2;
-    return x - 0.4 - h / 2;
-    // return (y - 0.5) * (y - 0.5) + (x - 0.3) * (x - 0.3) - (0.2 + h / 2) * (0.2 + h / 2);
-    // return y + 0.25 - h / 2;
-    // return 0.3 + tan(0.4) * y - x;
-    // return (x - h / 2) * (x - h / 2) + (y - h / 2) * (y - h / 2);
+    return x - 0.4 + 1e-10;
 }
 void Curve::FPrint() {
     std::ostringstream filename;
@@ -37,16 +30,13 @@ bool Curve::IsIrregular(int i, int j) {
     for (const auto& offset : offsets) {
         int new_i = i + offset.first;
         int new_j = j + offset.second;
-        // int new_i = (x_size + i + offset.first) % x_size;
-        // int new_j = (y_size + j + offset.second) % y_size;
-
         if (is_opposite(i, j, new_i, new_j)) return true;
     }
     return false;
 }
 void Curve::SetIrregularPoints() {
-    for (int i = 1; i < Mx - 1; ++i) {
-        for (int j = 1; j < My - 1; ++j) {
+    for (int i = 1; i < M - 1; ++i) {
+        for (int j = 1; j < M - 1; ++j) {
             pair<int, int> current_point = make_pair(i, j);
             // if (i == 0 || i == x_size - 1 || j == 0 || j == y_size - 1) {
             //     regular_points.insert(current_point);
@@ -61,8 +51,8 @@ void Curve::SetIrregularPoints() {
         }
     }
 }
-Curve::Curve(double _tau, double _h, int _Mx, int _My, double _x0, double _y0, double _A, double _omega, double _alpha)
-: InitValues(_tau, _h, _Mx, _My, _x0, _y0, _A, _omega, _alpha) {
+Curve::Curve(int _M, double _x0, double _y0, double _A, double _omega, double _alpha)
+: InitValues(_M, _x0, _y0, _A, _omega, _alpha) {
     SetIrregularPoints();
     FPrint();
 }

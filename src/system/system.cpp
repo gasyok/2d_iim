@@ -18,10 +18,10 @@ Vector3d System::equation(int i, int j) {
         c = c_plus;
     }
     
-    i1 = (Mx + i + 1) % Mx;
-    i2 = (Mx + i - 1) % Mx;
-    j1 = (My + j + 1) % My;
-    j2 = (My + j - 1) % My;
+    i1 = (M + i + 1) % M;
+    i2 = (M + i - 1) % M;
+    j1 = (M + j + 1) % M;
+    j2 = (M + j - 1) % M;
 
     return u[i][j] - 0.5 * tau / h * (A * (u[i1][j] - u[i2][j]) + B * (u[i][j1] - u[i][j2])) + \
             0.5 * (tau / h) * (tau / h) * c * c * (u[i1][j] + u[i2][j] + u[i][j1] + u[i][j2] - 4 * u[i][j]);
@@ -29,11 +29,11 @@ Vector3d System::equation(int i, int j) {
 Vector3d System::irrEquation(int i, int j) {
     Vector3d res (0.0, 0.0, 0.0);
 
-    int i1 = (Mx + (i - 1)) % Mx;
-    int i2 = (Mx + (i + 1)) % Mx;
+    int i1 = (M + (i - 1)) % M;
+    int i2 = (M + (i + 1)) % M;
 
-    int j1 = (My + (j - 1)) % My;
-    int j2 = (My + (j + 1)) % My;
+    int j1 = (M + (j - 1)) % M;
+    int j2 = (M + (j + 1)) % M;
 
     const vector<pair<int, int>> offsets = {{i1, j}, {i, j}, {i2, j}, {i, j2}, {i, j1}, {i2, j1}};
 
@@ -48,14 +48,79 @@ Vector3d System::irrEquation(int i, int j) {
 }
 void System::solve(double t) {
     vector<vector<Vector3d>> new_u = u;
-    for (auto c : irregular_points) {
-        new_u[c.first][c.second] = irrEquation(c.first, c.second);
-    }
-    for (auto c : regular_points) {
-        new_u[c.first][c.second] = equation(c.first, c.second);
+    // for (auto c : irregular_points) {
+    //     new_u[c.first][c.second] = irrEquation(c.first, c.second);
+    // }
+    // for (auto c : regular_points) {
+    //     new_u[c.first][c.second] = equation(c.first, c.second);
+    // }
+    for (int i = 1; i < M-1; ++i) {
+        for (int j = 1; j < M-1; ++j) {
+            new_u[i][j] = equation(i, j);
+        }
     }
     u = new_u;
 }
-System::System(double _tau, double _h, int _Mx, int _My, double _x0, double _y0, double _A, double _omega, double _alpha)
-    : PreProcess(_tau, _h, _Mx, _My, _x0, _y0, _A, _omega, _alpha) {
+void System::sample() {
+    int n = 0;
+    std::ofstream file_list("../bin/animation/velocity_out.pvd");
+    file_list << "<?xml version=\"1.0\"?>\n";
+    file_list << "<VTKFile type=\"Collection\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    file_list << "  <Collection>\n";
+    while (n < 50) {
+        // Формирование имени файла с индексом временного шага
+        // std::ostringstream filename;
+        // filename << "../bin/animation/velocity_out_" << std::setfill('0') << std::setw(5) << n << ".bin";
+        // std::ofstream file_velocity(filename.str(), std::ios::binary);
+        // // Запись количества точек данных для текущего временного шага (4 байта, little-endian)
+        // for (int i = 0; i < M; ++i) {
+        //     for (int j = 0; j < M; ++j) {
+        //         float x_coord = h * i;
+        //         float y_coord = h * j;
+        //         float pressure_value = GetValue(i, j)(2);
+        //         // Запись x, y и p(x, y) (каждый параметр - 4 байта, little-endian)
+        //         file_velocity.write(reinterpret_cast<char*>(&x_coord), sizeof(x_coord));
+        //         file_velocity.write(reinterpret_cast<char*>(&y_coord), sizeof(y_coord));
+        //         file_velocity.write(reinterpret_cast<char*>(&pressure_value), sizeof(pressure_value));
+        //     }
+        // }
+        // file_velocity.close();
+        std::ostringstream filename;
+        filename << "velocity_out_" << std::setfill('0') << std::setw(5) << n << ".vtk";
+        std::ofstream file_velocity("../bin/animation/" + filename.str());
+
+        // Запись данных в формате VTK, как в предыдущем примере...
+        file_velocity << "# vtk DataFile Version 3.0\n";
+        file_velocity << "Pressure data\n";
+        file_velocity << "ASCII\n";
+        file_velocity << "DATASET STRUCTURED_POINTS\n";
+        file_velocity << "DIMENSIONS " << M << " " << M << " 1\n";
+        file_velocity << "ORIGIN 0 0 0\n";
+        file_velocity << "SPACING " << h << " " << h << " 1\n";
+        file_velocity << "POINT_DATA " << (M * M) << "\n";
+        file_velocity << "SCALARS pressure double 1\n";
+        file_velocity << "LOOKUP_TABLE default\n";
+
+        for (int i = 0; i < M; ++i) {
+            for (int j = 0; j < M; ++j) {
+                float pressure_value = u[i][j](2);
+                // float pressure_value = static_cast<float>(u[i][j](2));
+                // float pressure_value = GetValue(i, j)(2);
+                // file_velocity << std::setprecision(5) << pressure_value << "\n";
+                file_velocity << pressure_value << "\n";
+            }
+        }
+        file_velocity.close();
+        file_list << "    <DataSet timestep=\"" << n << "\" part=\"0\" file=\"" << filename.str() << "\"/>\n";
+
+        n++;
+        solve(n * tau);
+    }
+    file_list << "  </Collection>\n";
+    file_list << "</VTKFile>\n";
+    file_list.close();
+}
+
+System::System(int _M, double _x0, double _y0, double _A, double _omega, double _alpha)
+    : PreProcess(_M, _x0, _y0, _A, _omega, _alpha) {
 }

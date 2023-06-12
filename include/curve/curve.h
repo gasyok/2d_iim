@@ -19,7 +19,7 @@ private:
     bool IsIrregular(int i, int j);
 
 public:
-    Curve(double _tau, double _h, int _Mx, int _My, double _x0, double _y0, double _A, double _omega, double _alpha);
+    Curve(int _M, double _x0, double _y0, double _A, double _omega, double _alpha);
     unordered_set<pair<int, int>, pair_hash> irregular_points;
     unordered_set<pair<int, int>, pair_hash> regular_points;
     bool is_opposite(int i, int j, int new_i, int new_j);

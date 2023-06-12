@@ -13,8 +13,8 @@ void InitValues::PrintInit() {
     std::ostringstream fileinit;
     fileinit << "../bin/animation/init_out.bin";
     std::ofstream file(fileinit.str(), std::ios::binary);
-    for (int i = 0; i < Mx; ++i) {
-        for (int j = 0; j < My; ++j) {
+    for (int i = 0; i < M; ++i) {
+        for (int j = 0; j < M; ++j) {
             float x_coord = i * h;
             float y_coord = j * h;
             float pressure_value = u[i][j](2);
@@ -93,30 +93,44 @@ void InitValues::PrintInit() {
 // }
 void InitValues::SetInitRadU(double x0, double y0, double omega) {
     double _pressure;
-    for (int i = 0; i < Mx; ++i) {
+    for (int i = 0; i < M; ++i) {
         u.push_back(vector<Vector3d>());
-        for (int j = 0; j < My; ++j) {
+        for (int j = 0; j < M; ++j) {
             double r = sqrt((i * h - x0) * (i * h - x0) + (j * h - y0) * (j * h - y0));
-            if (r > 1 / omega) {
+            if (r >= omega) {
                 _pressure = 0.0;
             }
             else {
-                _pressure = 1 - cos(2 * M_PI * r * omega);
+                _pressure = pow(cos(0.5 * M_PI * r / omega), 2);
             }
             u[i].push_back(Vector3d(0, 0, _pressure));
         }
     }
 }
-InitValues::InitValues() : InitValues(0.0004, 0.01, 100, 100, 0.5, 0.5, 1, 10, M_PI / 2 - 0.4) {}
-InitValues::InitValues(double _tau, double _h, int _Mx, int _My, double _x0, double _y0, double _A, double _omega, double _alpha)
-    : tau(_tau), h(_h), Mx(_Mx), My(_My), x0(_x0), y0(_y0), omega(_omega), alpha(_alpha), A(_A) {
+InitValues::InitValues(int _M, double _x0, double _y0, double _A, double _omega, double _alpha)
+    : M(_M), x0(_x0), y0(_y0), omega(_omega), alpha(_alpha), A(_A) {
 
-    rho_minus = 0.8;
-    rho_plus = 1.2;
+    h = 2.0 / _M;
+
+    rho_minus = 1;
     c_minus = 1;
-    c_plus = 2;
+
+    rho_plus = 1;
+    c_plus = 1;
+
     k_minus = c_minus * c_minus * rho_minus;
     k_plus = c_plus * c_plus * rho_plus;
+
+    cir_left = 0.4;
+    cir_right = cir_left * c_plus / c_minus;
+
+    tau = cir_left * h / c_minus;
+
+    if (cir_right >= 1) {
+        std::cout << "Error in CIR Right";
+        exit(-1);
+    }
+
 
     A_minus << 0, 0, 1 / rho_minus,
                0, 0, 0,
@@ -133,4 +147,8 @@ InitValues::InitValues(double _tau, double _h, int _Mx, int _My, double _x0, dou
     // SetInitU(x0, y0, A, omega, alpha);
     SetInitRadU(x0, y0, omega);
     PrintInit();
+    std::cout << "TAU: " << tau << std::endl;
+    std::cout << "CIR LEFT: " << c_minus * tau / h << std::endl;
+    std::cout << "CIR RIGHT: " << c_plus * tau / h << std::endl;
+
 }

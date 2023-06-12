@@ -18,5 +18,5 @@ private:
     void Solve();
 public:
     std::unordered_map<std::pair<int, int>, std::vector<Eigen::Matrix3d>, pair_hash> gamma_matrices;
-    PreProcess(double _tau, double _h, int _Mx, int _My, double _x0, double _y0, double _A, double _omega, double _alpha);
+    PreProcess(int _M, double _x0, double _y0, double _A, double _omega, double _alpha);
 };

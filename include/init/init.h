@@ -15,10 +15,11 @@ public:
     Matrix3d A_minus, A_plus, B_minus, B_plus;
     double rho_minus, rho_plus, c_minus, c_plus, k_minus, k_plus;
     double tau, h;
-    int Mx, My;
+    int M;
 
-    InitValues();
-    InitValues(double _tau, double _h, int _Mx, int _My, double _x0, double _y0, double _A, double _omega, double _alpha);
+    double cir_left, cir_right;
+
+    InitValues(int _M, double _x0, double _y0, double _A, double _omega, double _alpha);
     void SetInitU(double x0, double y0, double A, double omega, double alpha);
     void SetInitRadU(double x0, double y0, double omega);
     void PrintInit();

@@ -7,11 +7,11 @@ pair<int, int> PreProcess::GetPoint(int l, pair<int, int> point) {
     int i = point.first;
     int j = point.second;
     
-    int i1 = (Mx + (i - 1)) % Mx;
-    int i2 = (Mx + (i + 1)) % Mx;
+    int i1 = (M + (i - 1)) % M;
+    int i2 = (M + (i + 1)) % M;
 
-    int j1 = (My + (j - 1)) % My;
-    int j2 = (My + (j + 1)) % My;
+    int j1 = (M + (j - 1)) % M;
+    int j2 = (M + (j + 1)) % M;
 
     const vector<pair<int, int>> offsets = {{i1, j}, {i, j}, {i2, j}, {i, j2}, {i, j1}, {i2, j1}};
     return offsets[l];
@@ -52,11 +52,11 @@ Vector2d PreProcess::GetOrigin(pair<int, int> point) {
     int j = point.second;
 
     
-    int i1 = (Mx + (i - 1)) % Mx;
-    int i2 = (Mx + (i + 1)) % Mx;
+    int i1 = (M + (i - 1)) % M;
+    int i2 = (M + (i + 1)) % M;
 
-    int j1 = (My + (j - 1)) % My;
-    int j2 = (My + (j + 1)) % My;
+    int j1 = (M + (j - 1)) % M;
+    int j2 = (M + (j + 1)) % M;
 
 
     const vector<pair<int, int>> offsets = {{i1, j}, {i, j}, {i2, j}, {i, j2}, {i, j1}};
@@ -191,7 +191,7 @@ Matrix3d PreProcess::OppositeQ(int i, int l, pair<int, int> point) {
     double num = new_deriv2(1, 1);
     // std::cout << "num " << num << "\ndenom " << denom << std::endl;
     double curvature_value = num / denom;
-    std::cout << "Curv: " << curvature_value << std::endl;
+    // std::cout << "Curv: " << curvature_value << std::endl;
 
     vector<Matrix3d> matrices_default = GetDefaultQ(point);
     Matrix3d q1 = matrices_default[0];
@@ -275,8 +275,8 @@ vector<Matrix3d> PreProcess::CalcGammaMatrices(pair<int, int> point) {
     }
     return block_matrices;
 }
-PreProcess::PreProcess(double _tau, double _h, int _Mx, int _My, double _x0, double _y0, double _A, double _omega, double _alpha)
-: Curve(_tau, _h, _Mx, _My, _x0, _y0, _A, _omega, _alpha) {
+PreProcess::PreProcess(int _M, double _x0, double _y0, double _A, double _omega, double _alpha)
+: Curve(_M, _x0, _y0, _A, _omega, _alpha) {
     Solve();
 }
 void PreProcess::Solve() {
