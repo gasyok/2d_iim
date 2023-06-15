@@ -79,7 +79,6 @@ double InitValues::foo(double xi) {
     }
     return 0.0;
 }
-
 void InitValues::SetInitPlaneU() {
     double _pressure;
     Matrix3d p_alpha;
@@ -149,8 +148,8 @@ InitValues::InitValues(int _M, double _x0, double _y0, double _A, double _omega,
     B_plus << 0, 0, 0,
                0, 0, 1 / rho_plus,
                0, k_plus, 0;
-    SetInitRadU();
-    // SetInitPlaneU();
+    // SetInitRadU();
+    SetInitPlaneU();
     std::cout << "TAU: " << tau << std::endl;
     std::cout << "CIR LEFT: " << c_minus * tau / h << std::endl;
     std::cout << "CIR RIGHT: " << c_plus * tau / h << std::endl;

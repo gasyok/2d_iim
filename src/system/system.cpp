@@ -54,7 +54,24 @@ void System::solve(double t) {
     for (auto c : regular_points) {
         new_u[c.first][c.second] = equation(c.first, c.second);
     }
-    // for (int i = 1; i < M-1; ++i) {
+
+    // for (int j = 0; j < M; ++j) {
+    //     double xi_min = -x0;
+    //     double xi_max = (M - 1) * h - x0;
+    //     double _pres_min = foo(xi_min - c_minus * t);
+    //     double _pres_max = foo(xi_max - x0 - c_minus * t);
+    //
+    //     u[0][j] = Vector3d(_pres_min / (c_minus * rho_minus), 0, _pres_min);
+    //     u[M - 1][j] = Vector3d(_pres_max / (c_minus * rho_minus), 0, _pres_max);
+    // }
+    for (int i = 0; i < M; ++i) {
+        double xi = i * h - x0;
+        double _pres = foo(xi - c_plus * t);
+
+        new_u[i][0] = Vector3d(_pres / (c_plus * rho_plus), 0, _pres);
+        new_u[i][M - 1] = Vector3d(_pres / (c_plus * rho_plus), 0, _pres);
+    }
+    // for (int i = 1; i <= M-1; ++i) {
     //     for (int j = 1; j < M-1; ++j) {
     //         new_u[i][j] = equation(i, j);
     //     }
